@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Document Classifier - Multi Document</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+        }
+
+        .main-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+            width: 100%;
+            padding: 40px;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 14px;
+            color: #888;
+        }
+
+        .badge-info {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        /* UPLOAD SECTION */
+        .upload-box {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px 20px;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .upload-box:hover {
+            border-color: #764ba2;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            transform: translateY(-2px);
+        }
+
+        .upload-box.dragover {
+            border-color: #764ba2;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .upload-text {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .upload-subtext {
+            font-size: 13px;
+            color: #666;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        /* FILES LIST */
+        .files-list {
+            margin-top: 25px;
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            padding: 15px;
+            background: #f9f9f9;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            font-size: 14px;
+        }
+
+        .file-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .file-name {
+            flex: 1;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .file-size {
+            color: #888;
+            font-size: 12px;
+            margin-right: 10px;
+        }
+
+        .remove-file {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.3s;
+        }
+
+        .remove-file:hover {
+            background: #ff5252;
+        }
+
+        /* BUTTONS */
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+            justify-content: center;
+        }
+
+        .classify-btn,
+        .clear-btn {
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .classify-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            flex: 1;
+        }
+
+        .classify-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .classify-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .clear-btn {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .clear-btn:hover {
+            background: #d0d0d0;
+        }
+
+        /* LOADING */
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* RESULTS SECTION */
+        .results-section {
+            margin-top: 40px;
+            display: none;
+        }
+
+        .results-header {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+        }
+
+        .result-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .result-card:hover {
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .result-card.success {
+            border-left: 5px solid #4CAF50;
+        }
+
+        .result-card.error {
+            border-left: 5px solid #ff6b6b;
+        }
+
+        .result-filename {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            word-break: break-all;
+        }
+
+        .result-label {
+            font-size: 28px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 8px;
+            text-transform: capitalize;
+        }
+
+        .result-confidence {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .confidence-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        .top-predictions {
+            font-size: 12px;
+            color: #666;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .prediction-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .prediction-label {
+            font-weight: 500;
+            color: #333;
+            text-transform: capitalize;
+        }
+
+        .prediction-conf {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .error-message {
+            color: #ff6b6b;
+            font-size: 14px;
+            padding: 10px;
+            background: #ffe0e0;
+            border-radius: 8px;
+            border-left: 4px solid #ff6b6b;
+        }
+
+        .summary-stats {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .stat-item {
+            display: inline-block;
+            margin-right: 20px;
+            font-size: 14px;
+        }
+
+        .stat-label {
+            color: #666;
+        }
+
+        .stat-value {
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        @media (max-width: 600px) {
+            .main-container {
+                padding: 20px;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-container">
+        <!-- HEADER -->
+        <div class="header">
+            <h1>📄 Document Classifier</h1>
+            <p>Classify IEEE, Springer, ACM, Compliance, and Legal documents in bulk</p>
+            <div class="badge-info">Multi-Document Processing</div>
+        </div>
+
+        <!-- UPLOAD SECTION -->
+        <div class="upload-box" id="upload-box">
+            <div class="upload-icon">📁</div>
+            <div class="upload-text">Drop documents here or click to browse</div>
+            <div class="upload-subtext">Supports PDF and TXT files (up to 50 documents)</div>
+            <input type="file" id="file-input" multiple accept=".pdf,.txt">
+        </div>
+
+        <!-- FILES LIST -->
+        <div id="files-list-container" style="display: none;">
+            <div class="files-list" id="files-list"></div>
+        </div>
+
+        <!-- BUTTONS -->
+        <div class="button-group">
+            <button class="classify-btn" id="classify-btn" disabled>Classify Documents</button>
+            <button class="clear-btn" id="clear-btn">Clear All</button>
+        </div>
+
+        <!-- LOADING -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Processing documents...</p>
+        </div>
+
+        <!-- RESULTS SECTION -->
+        <div class="results-section" id="results-section">
+            <div class="results-header">Classification Results</div>
+
+            <div id="summary-stats" class="summary-stats" style="display: none;">
+                <div class="stat-item">
+                    <span class="stat-label">Total Documents:</span>
+                    <span class="stat-value" id="stat-total">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Successful:</span>
+                    <span class="stat-value" id="stat-success">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Failed:</span>
+                    <span class="stat-value" id="stat-failed">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Processing Time:</span>
+                    <span class="stat-value" id="stat-time">0s</span>
+                </div>
+            </div>
+
+            <div class="results-grid" id="results-grid"></div>
+        </div>
+    </div>
+
+    <script>
+        let uploadedFiles = [];
+        const uploadBox = document.getElementById('upload-box');
+        const fileInput = document.getElementById('file-input');
+        const filesListContainer = document.getElementById('files-list-container');
+        const filesList = document.getElementById('files-list');
+        const classifyBtn = document.getElementById('classify-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const loading = document.getElementById('loading');
+        const resultsSection = document.getElementById('results-section');
+        const resultsGrid = document.getElementById('results-grid');
+
+        // Upload box click
+        uploadBox.addEventListener('click', () => fileInput.click());
+
+        // Drag and drop
+        uploadBox.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadBox.classList.add('dragover');
+        });
+
+        uploadBox.addEventListener('dragleave', () => {
+            uploadBox.classList.remove('dragover');
+        });
+
+        uploadBox.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadBox.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        // File input change
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            if (uploadedFiles.length + files.length > 50) {
+                alert('Maximum 50 documents allowed');
+                return;
+            }
+
+            for (let file of files) {
+                if (file.name.toLowerCase().endsWith('.pdf') || file.name.toLowerCase().endsWith('.txt')) {
+                    uploadedFiles.push(file);
+                } else {
+                    alert(`${file.name} is not supported. Only PDF and TXT files allowed.`);
+                }
+            }
+
+            updateFilesList();
+        }
+
+        function updateFilesList() {
+            if (uploadedFiles.length === 0) {
+                filesListContainer.style.display = 'none';
+                classifyBtn.disabled = true;
+                resultsSection.style.display = 'none';
+                return;
+            }
+
+            filesListContainer.style.display = 'block';
+            classifyBtn.disabled = false;
+            filesList.innerHTML = '';
+
+            uploadedFiles.forEach((file, index) => {
+                const fileSize = (file.size / 1024).toFixed(2);
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <span class="file-name">${file.name}</span>
+                    <span class="file-size">${fileSize} KB</span>
+                    <button class="remove-file" onclick="removeFile(${index})">Remove</button>
+                `;
+                filesList.appendChild(fileItem);
+            });
+        }
+
+        function removeFile(index) {
+            uploadedFiles.splice(index, 1);
+            updateFilesList();
+        }
+
+        clearBtn.addEventListener('click', () => {
+            uploadedFiles = [];
+            fileInput.value = '';
+            updateFilesList();
+        });
+
+        classifyBtn.addEventListener('click', classifyDocuments);
+
+        async function classifyDocuments() {
+            if (uploadedFiles.length === 0) {
+                alert('Please upload documents first');
+                return;
+            }
+
+            loading.style.display = 'block';
+            resultsSection.style.display = 'none';
+            const startTime = Date.now();
+
+            try {
+                const formData = new FormData();
+                uploadedFiles.forEach(file => {
+                    formData.append('files', file);
+                });
+
+                const response = await fetch('/analyze_multiple', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                const endTime = Date.now();
+                const processingTime = ((endTime - startTime) / 1000).toFixed(2);
+
+                displayResults(data, processingTime);
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        function displayResults(data, processingTime) {
+            resultsGrid.innerHTML = '';
+            let successCount = 0;
+            let failedCount = 0;
+
+            data.results.forEach(result => {
+                const resultCard = createResultCard(result);
+                resultsGrid.appendChild(resultCard);
+
+                if (result.status === 'success') successCount++;
+                else failedCount++;
+            });
+
+            // Update summary stats
+            document.getElementById('stat-total').textContent = data.results.length;
+            document.getElementById('stat-success').textContent = successCount;
+            document.getElementById('stat-failed').textContent = failedCount;
+            document.getElementById('stat-time').textContent = processingTime + 's';
+            document.getElementById('summary-stats').style.display = 'block';
+
+            resultsSection.style.display = 'block';
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function createResultCard(result) {
+            const card = document.createElement('div');
+            card.className = 'result-card ' + (result.status === 'success' ? 'success' : 'error');
+
+            if (result.status === 'success') {
+                // Check if confidence is low (document might not match any category well)
+                const isLowConfidence = result.confidence < 50;
+                const warningMsg = isLowConfidence ?
+                    '<div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 10px; margin-top: 15px; border-radius: 5px; font-size: 13px; color: #856404;"><strong>⚠️ Low Confidence:</strong> Document may not match any of the standard categories. Please verify or upload a proper document.</div>'
+                    : '';
+
+                // Generate mini summary based on category
+                const summary = generateSummary(result.prediction, result.confidence);
+
+                card.innerHTML = `
+                    <div class="result-filename">📄 ${result.filename}</div>
+                    <div class="result-label">${result.prediction}</div>
+                    <div class="result-confidence">Confidence: <strong>${result.confidence}%</strong></div>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" style="width: ${result.confidence}%"></div>
+                    </div>
+                    ${result.top_predictions ? `
+                        <div class="top-predictions">
+                            <strong>Top Predictions:</strong>
+                            ${result.top_predictions.map(p => `
+                                <div class="prediction-item">
+                                    <span class="prediction-label">${p.label}</span>
+                                    <span class="prediction-conf">${p.confidence}%</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    ${summary}
+                    ${warningMsg}
+                `;
+            } else {
+                card.innerHTML = `
+                    <div class="result-filename">❌ ${result.filename}</div>
+                    <div class="error-message">${result.error}</div>
+                `;
+            }
+
+            return card;
+        }
+
+        function generateSummary(category, confidence) {
+            let summaryText = '';
+
+            if (category === 'ieee') {
+                summaryText = '✓ IEEE standard paper detected. Contains technical research with peer review standards.';
+            } else if (category === 'springer') {
+                summaryText = '✓ Springer publication format detected. Academic paper with structured methodology.';
+            } else if (category === 'acm') {
+                summaryText = '✓ ACM conference/journal paper detected. Computing-related research with specific formatting.';
+            } else if (category === 'compliance') {
+                summaryText = '✓ Compliance document detected. Contains regulatory requirements and guidelines.';
+            } else if (category === 'legal') {
+                summaryText = '✓ Legal document detected. Contains terms, conditions, and legal language.';
+            } else {
+                summaryText = '? Document category unclear. Review content carefully.';
+            }
+
+            return `<div style="background: #e8f5e9; border-left: 4px solid #4CAF50; padding: 10px; margin-top: 15px; border-radius: 5px; font-size: 13px; color: #2e7d32;"><strong>Summary:</strong> ${summaryText}</div>`;
+        }
+    </script>
+</body>
+
+</html>
