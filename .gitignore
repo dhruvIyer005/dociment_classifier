@@ -35,8 +35,6 @@ env/
 
 # Models and data
 models/
-data/raw_pdf/
-data/*/
 *.csv
 
 # Outputs
